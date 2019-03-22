@@ -7,11 +7,12 @@
 ## 定义环境变量
 ```java
 @Component
+// read config yaml file from resource or relative path
 @Yml(path = {"config/config.yaml", "config.yaml"})
 @Lazy(false)
 public class ApiEnv {
 
-    @Yml("$.DEMO.FOO.URL")
+    @Yml("$.DEMO.FOO.URL") // get yaml param by expression
     private static String your_env_param;
 
     @PostConstruct
