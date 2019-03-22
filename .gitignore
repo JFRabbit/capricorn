@@ -1,0 +1,15 @@
+# Ignore
+.idea/
+.settings/
+logs/
+*log
+*.class
+target/
+.classpath
+.project
+test-output/
+config/
+*.iml
+build/
+/out/
+*.MF
