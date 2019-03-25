@@ -1,41 +1,120 @@
-# REST API TEST 脚手架
+# Test Staging for RESTful API
 
-# Cool Demo
+# [Demo:](https://github.com/JFRabbit/capricorn/tree/dev/capricorn-demo)
 
-## Maven 依赖 TODO
+### Define Spring config 定义Spring相关配置
+```java
+@Lazy // default Lazy type 默认全局为Lazy模式
+@Configuration
+@ComponentScan(basePackages = {
+        "com.jfrabbit.demo"
+})
+@EnableAspectJAutoProxy
+public class DemoApiSpringConfig {}
+```
 
-## 定义环境变量
+```java
+// assign Spring config class 指定Spring配置类
+@ContextConfiguration(classes = DemoApiSpringConfig.class)
+public class DemoRestApiTest extends BaseRestApiTest {
+}
+```
+
+### Define Spring aop 定义Spring aop
 ```java
 @Component
-// read config yaml file from resource or relative path
+@Aspect
+public class DemoTestCaseAop extends BaseRestApiTestCaseAop {
+
+    // testcase package 测试用例的package
+    private static final String CASE_PACKAGE = "com.jfrabbit.demo.caze";
+
+    // define around rule 定义环绕规则
+    @Around(AOP_RULE_PREFIX + CASE_PACKAGE + "..*.*(com.jfrabbit.demo.FooRequestParam))")
+    public Object testcaseAspect(ProceedingJoinPoint p) throws Throwable {
+        return super.testcaseAspect(p);
+    }
+
+    // override login function 重写登录方法
+    @Override
+    public void setLoginToken(HttpRequest request, RestRequestParam requestParam) {
+        // cast son class to get login param 可将参数强转为继承类，通过get方法获取登录参数
+        FooRequestParam param = (FooRequestParam) requestParam;
+
+        if (param == null) {
+            throw new RuntimeException();
+        } else if (param.getUsername() != null && param.getPassword() != null) {
+            // TODO call login interface to assemble header 调用登录接口后，组装header
+        } else {
+            request.header(new HashMap<>());
+        }
+    }
+}
+```
+
+### Define environment variables 定义环境变量
+```yaml
+DEMO:
+  FOO:
+    URL: http://xxx/xxx
+```
+
+```java
+/**
+ * read config yaml file from resource or relative path 
+ * 相对路径读取配置文件，优先读取resources路径，如果失败，读取项目根路径或jar包同路径
+ * 
+ * sequence: try path one by one and use first correct
+ * 依次根据路径参数数组读取，使用第一个读取成功的文件
+ */
+@Component
 @Yml(path = {"config/config.yaml", "config.yaml"})
 @Lazy(false)
 public class ApiEnv {
 
-    @Yml("$.DEMO.FOO.URL") // get yaml param by expression
-    private static String your_env_param;
+    // inject param from config file by expression 通过表达式，注入配置文件
+    @Yml("$.DEMO.FOO.URL")
+    private static String your_env;
 
     @PostConstruct
     public void init() {
         YamlUtil.injectYamlField(this);
     }
+
 }
 ```
 
 ## 定义Rest接口
 ```java
 @Component
-@Env(env = ApiEnv.class, value = "your_env_param")
-@Request(mapping = "your url mapping")
+// assign env variable
+@Env(env = ApiEnv.class, value = "your_env")
+// assign url mapping
+@Request(mapping = "/your_url_mapping")
 public class DemoCase {
 
+    // url after assemble 组装后的url your_env/your_url_mapping/your_url/{some_dynamic_params}/foo
     @Request(url = "/your_url/{some_dynamic_params}/foo", method = HttpMethodEnum.POST)
-    @ApiTestCase("test demo")
+    @ApiTestCase("test demo") // test case name
+    // use CompareResult for return class，first param must extends RestRequestParam，only return null
+    // 返回结果使用CompareResult，第一个参数必须继承RestRequestParam，返回null即可
     public CompareResult foo(FooRequestParam param) {
         return null;
     }
 }
+```
 
+### 定义测试基类
+```java
+/**
+ * extends base class, declare java bean, define constant or common function
+ * 继承测试基类、声明java bean、定义常量和公共方法
+ */
+public class TestBase extends DemoRestApiTest {
+
+    @Resource
+    protected DemoCase demoCase;
+}
 ```
 
 ## 定义测试类
@@ -70,7 +149,8 @@ public class TestDemo extends TestBase {
                                 )
                                 // upload file with Multipart
                                 .upload("relative file path in resource", "key")
-                                // check response code is 200 and response payload is FooResponseCode instance
+                                // assert response code is 200 and response payload is FooResponseCode instance or map
+                                // 校验响应码为200，响应的body体与实体或map一致
                                 .response(new HttpResponse(
                                                 200,
                                                 new FooResponseCode(
@@ -82,7 +162,7 @@ public class TestDemo extends TestBase {
                                                         "")
                                         )
                                 )
-                                // set JsonAssert rule
+                                // set JsonAssert rule 可以通过JsonAssert指定校验规则
                                 .comparator(new JsonUnitComparator(Option.IGNORING_EXTRA_ARRAY_ITEMS))
                 }
         };
@@ -90,10 +170,6 @@ public class TestDemo extends TestBase {
 }
 ```
 
-## 定义Spring相关配置
-
-## 定义Rest接口
-
-## 定义aop
-
-## 定义测试基类
+### CI
+Suggestion: package your test project, use TestNG XML to run test case, build docker image and deploy to piplines.
+建议将测试项目打成jar包，使用TestNG的XML文件执行用例，制作成docker镜像并部署到流水线。

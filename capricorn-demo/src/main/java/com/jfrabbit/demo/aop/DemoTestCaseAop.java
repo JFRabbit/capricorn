@@ -18,24 +18,25 @@ import java.util.HashMap;
 @Aspect
 public class DemoTestCaseAop extends BaseRestApiTestCaseAop {
 
-    // 存储用例的package
+    // testcase package 测试用例的package
     private static final String CASE_PACKAGE = "com.jfrabbit.demo.caze";
 
-    // 集成RestRequestParam的子类
+    // define around rule 定义环绕规则
     @Around(AOP_RULE_PREFIX + CASE_PACKAGE + "..*.*(com.jfrabbit.demo.FooRequestParam))")
     public Object testcaseAspect(ProceedingJoinPoint p) throws Throwable {
         return super.testcaseAspect(p);
     }
 
+    // override login function 重写登录方法
     @Override
     public void setLoginToken(HttpRequest request, RestRequestParam requestParam) {
-        // 可将参数强转为继承类，通过get方法获取登录参数
+        // cast son class to get login param 可将参数强转为继承类，通过get方法获取登录参数
         FooRequestParam param = (FooRequestParam) requestParam;
 
         if (param == null) {
             throw new RuntimeException();
         } else if (param.getUsername() != null && param.getPassword() != null) {
-            // 调用登录接口后，组装header
+            // TODO call login interface to assemble header 调用登录接口后，组装header
         } else {
             request.header(new HashMap<>());
         }

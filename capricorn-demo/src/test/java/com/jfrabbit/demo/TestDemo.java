@@ -41,7 +41,8 @@ public class TestDemo extends TestBase {
                                 )
                                 // upload file with Multipart
                                 .upload("relative file path in resource", "key")
-                                // check response code is 200 and response payload is FooResponseCode instance
+                                // assert response code is 200 and response payload is FooResponseCode instance or map
+                                // 校验响应码为200，响应的body体与实体或map一致
                                 .response(new HttpResponse(
                                                 200,
                                                 new FooResponseCode(
@@ -53,7 +54,7 @@ public class TestDemo extends TestBase {
                                                         "")
                                         )
                                 )
-                                // set JsonAssert rule
+                                // set JsonAssert rule 可以通过JsonAssert指定校验规则
                                 .comparator(new JsonUnitComparator(Option.IGNORING_EXTRA_ARRAY_ITEMS))
                 }
         };
