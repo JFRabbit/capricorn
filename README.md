@@ -1,4 +1,4 @@
-# Test Staging for RESTful API
+# Test Staging for HTTP Test
 
 # [Demo:](https://github.com/JFRabbit/capricorn/tree/dev/capricorn-demo)
 
