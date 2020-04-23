@@ -17,7 +17,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <json.unit.version>1.24.0</json.unit.version>
-        <jackson.version>2.9.8</jackson.version>
+        <jackson.version>2.9.10.4</jackson.version>
         <zxing.version>3.3.3</zxing.version>
     </properties>
 
